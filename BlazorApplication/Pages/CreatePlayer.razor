@@ -1,0 +1,63 @@
+﻿@page "/CreatePlayer"
+@using BlazorApplication.Data
+@using BlazorApplication.Models
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager _navigationManager
+@inject IPlayerHandler _playerHandler
+@inject ITeamHandler _teamHandler
+
+<h3>CreatePlayer</h3>
+
+<EditForm Model="@_player" OnValidSubmit="@AddNewPlayer">
+    <DataAnnotationsValidator/> <ValidationSummary/>
+    <div class="form-group"> Player Name:<br/> <InputTextArea rows="1" @bind-Value="_player.Name"/> </div>
+    <div class="form-group"> Shirt Number:<br/> <InputNumber @bind-Value="_player.ShirtNumber"/> </div>
+    <div class="form-group"> Salary:<br/> <InputNumber @bind-Value="_player.Salary"/> </div>
+    <div class="form-group"> Goals this Season:<br/> <InputNumber @bind-Value="_player.GoalsThisSeason"/> </div>
+    <div class="form-group"> Position:<br/> <InputTextArea rows="1" @bind-Value="_player.Position"/> </div>
+    
+    <div class="col-md-6 col-lg-4 col-xl-3 p-3">
+            <RadzenCard>
+                <RadzenDropDown AllowClear="true" TValue="Team" Class="w-100"
+                                AllowFiltering="true"
+                                Data=@_teams TextProperty="FirstName"
+                                Change=@(args => OnChange(args, "OmegaMeme")) />
+            </RadzenCard>
+        </div>
+    
+    <p class="actions">
+        <button class="btn btn-outline-dark" type="submit">Add Player</button>
+    </p>
+</EditForm>
+
+
+@code {
+    Player _player;
+    IList<Team> _teams;
+
+    private string teamName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _player = new();
+        _teams = await _teamHandler.GetTeams();
+    }
+
+
+    private void OnChange(object args, string omegameme)
+    {
+        Team team = new Team();
+        team = (Team) args;
+        teamName = team.TeamName;
+    }
+
+    private void AddNewPlayer()
+    {
+        if (teamName != null)
+        {
+            _playerHandler.AddPlayer(_player, teamName);
+            _navigationManager.NavigateTo("/Overview");
+        }
+    }
+
+}

@@ -1,0 +1,142 @@
+﻿@page "/Overview"
+@using BlazorApplication.Models
+@using BlazorApplication.Data
+
+@inject ITeamHandler _teamHandler
+@inject IPlayerHandler _playerHandler
+
+<h3>DisplayPlayersTeam</h3>
+
+<h4>Clever Filter Maybe</h4>
+    <p>
+        Filter by Team Name: <input type="text" @oninput="@((arg) => FilterByTeamName(arg))" style="width:50px"/>
+    </p>
+    <p>
+        Filter by Team Ranking: <input type="number" @oninput="@((arg) => FilterByTeamRanking(arg))" style="width:50px"/>
+    </p>
+
+@if (_shownTeams == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!_shownTeams.Any())
+{
+    <p>
+        <em>No Authors exist. Please add some.</em>
+    </p>
+}
+else
+{
+    @foreach (Team team in _shownTeams)
+    {
+        <p>@team.TeamName, coach name @team.NameOfCoach, @team.Ranking</p>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Shirt Number</th>
+                <th>Salary</th>
+                <th>Goals this Season</th>
+                <th>Position</th>
+                <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (Player player in team.Players)
+            {
+                <tr>
+                    <td>@player.Id</td>
+                    <td>@player.Name</td>
+                    <td>@player.ShirtNumber</td>
+                    <td>@player.Salary</td>
+                    <td>@player.GoalsThisSeason</td>
+                    <td>@player.Position</td>
+                    <td>
+                        <button @onclick="@(() => RemovePlayer(player.Id))">
+                            <i class="oi oi-trash" style="color: #ff0000"/>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <hr/>
+    }
+}
+
+@code {
+    private IList<Team> _allTeams;
+    private IList<Team> _shownTeams;
+
+    private string filterByTeamName = null;
+    private int? filterByTeamRanking = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _shownTeams = new List<Team>();
+        _allTeams = await _teamHandler.GetTeams();
+        _shownTeams = _allTeams;
+    }
+
+    private void RemovePlayer(int playerId)
+    {
+        _playerHandler.DeletePlayer(playerId);
+    }
+
+    private void FilterByTeamName(ChangeEventArgs changeEventArgs)
+    {
+        string name = changeEventArgs.Value?.ToString();
+
+        if (name.Length > 0)
+        {
+            _shownTeams = _shownTeams.Where(a => a.TeamName.ToLower().Contains(name.ToLower())).ToList();
+        }
+        else
+        {
+            _shownTeams = _allTeams;
+        }
+    }
+
+    private void FilterByTeamRanking(ChangeEventArgs changeEventArgs)
+    {
+        string name = changeEventArgs.Value?.ToString();
+        int rank = 0;
+
+        try
+        {
+            rank = int.Parse(name);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Invalid input");
+        }
+
+        if (rank > 0)
+        {
+            _shownTeams = _shownTeams.Where(a => a.Ranking <= rank).ToList();
+        }
+        else
+        {
+            _shownTeams = _allTeams;
+        }
+    }
+
+    /*
+    private void ExecuteFilter()
+    {
+        _shownTeams = _allTeams.Where(t =>
+            (filterByTeamRanking != null && t.Ranking <= filterByTeamRanking || filterByTeamName == null) &&
+            (filterByTeamName != null && t.TeamName.ToLower().Contains(filterByTeamName.ToLower()) || filterByTeamName == null)).ToList();
+    }*/
+
+}

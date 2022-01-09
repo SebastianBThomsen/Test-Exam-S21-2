@@ -1,0 +1,35 @@
+﻿@page "/CreateTeam"
+@using Microsoft.AspNetCore.Components
+@using BlazorApplication.Models
+@using BlazorApplication.Data
+@inject ITeamHandler _teamHandler
+@inject NavigationManager _navigationManager
+
+<h3>CreateTeam</h3>
+
+<EditForm Model="@_team" OnValidSubmit="@AddNewTeam">
+    <DataAnnotationsValidator/> <ValidationSummary/>
+    <div class="form-group"> Team Name:<br/> <InputTextArea rows="1" @bind-Value="_team.TeamName"/> </div>
+    <div class="form-group"> Coach Name:<br/> <InputTextArea rows="1" @bind-Value="_team.NameOfCoach"/> </div>
+    <div class="form-group"> Ranking:<br/> <InputNumber @bind-Value="_team.Ranking"/> </div>
+    <p class="actions">
+        <button class="btn btn-outline-dark" type="submit">Add Author</button>
+    </p>
+</EditForm>
+
+@code {
+    private Team _team;
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _team = new Team();
+        _team.Players = new List<Player>();
+    }
+    
+    private void AddNewTeam()
+    {
+        _teamHandler.AddTeam(_team);
+        _navigationManager.NavigateTo("/Overview");
+    }
+}
